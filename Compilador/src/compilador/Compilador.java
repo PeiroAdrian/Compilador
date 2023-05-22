@@ -12,6 +12,10 @@ public class Compilador {
              System.out.println("Analisis lexico terminado");
          
         }
+
+        if (!lexico.errorEncontradoSintactico) {
+            System.out.println("Analisis sintactico terminado");
+        }
     
     }
 }
