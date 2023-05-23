@@ -60,6 +60,7 @@ class lexico {
             /* 1 */ { "if", "201" },
             /* 2 */ { "else", "202" },
             /* 3 */ { "main", "203" },
+            /* 13 */ { "getvalue", "204" },
             /* 5 */ { "go to", "205" },
             /* 6 */ { "Print", "206" },
             /* 7 */ { "new", "207" },
@@ -69,7 +70,6 @@ class lexico {
             /* 11 */ { "true", "211" },
             /* 12 */ { "String", "212" },
             /* 13 */ { "getvalue", "213" }
-
     };
     String errores[][] = {
 
@@ -225,6 +225,9 @@ class lexico {
         ////////// Analizador Sintactico //////////
         p = cabeza;
         while (p != null) {
+            if (errorEncontradoSintactico) {
+                break;
+            }
             if (p.token == 203) { // main
                 p = p.siguienteNodo;
                 if (p.token == 117) { // (
@@ -234,74 +237,113 @@ class lexico {
                         if (p.token == 119) { // {
                             p = p.siguienteNodo;
                             variables();
-                            statement();
+                            while (p.token != 120) {
+                                statement();
+                            }
                             // p=p.siguienteNodo;
-                            if (p.token == 120 || p == null) { // } //ERROR AQUI
+                            if (p.token == 120) { // }
                                 p = p.siguienteNodo;
 
                             }
+                            /*
+                             * if (p.token != 120) {
+                             * System.out.println("Error, caracter invalido despues de }");
+                             * }
+                             */
+
                         } else {
                             System.out.println("Error, se espera: {");
-                            ErrorSintactico();
+                            errorEncontradoSintactico = true;
+                            return;
                         }
                     } else {
                         System.out.println("Error, se espera: )");
-                        ErrorSintactico();
+                        errorEncontradoSintactico = true;
+                        return;
                     }
                 } else {
                     System.out.println("Error, se espera: (");
-                    ErrorSintactico();
+                    errorEncontradoSintactico = true;
+                    return;
                 }
             } else {
                 System.out.println("Error, se espera: main");
-                ErrorSintactico();
+                errorEncontradoSintactico = true;
+                return;
             }
-            // p=p.siguienteNodo;
+            // p = p.siguienteNodo;
         }
     }
 
     private void variables() {
         if (p.token == 207) {// new
             p = p.siguienteNodo;
-            tipos();
-            p = p.siguienteNodo;    
-
-            if (p.token == 100 || p.token == 101) {
+            if (tipos()) {
                 p = p.siguienteNodo;
+            } else {
+                errorEncontradoSintactico = true;
+                return;
+            }
 
+            if (p.token == 100 || p.token == 101) {// id
+                p = p.siguienteNodo;
             } else {
                 System.out.println("Error, se espera: id");
-                ErrorSintactico();
+                errorEncontradoSintactico = true;
+                return;
+            }
+            while (p.token == 124) {// ,
+                p = p.siguienteNodo;
+                if (p.token == 100 || p.token == 101) {// id
+                    p = p.siguienteNodo;
+                } else {
+                    System.out.println("Error, se espera: id");
+                    errorEncontradoSintactico = true;
+                    return;
+                }
             }
             if (p.token == 125) {// ;
                 p = p.siguienteNodo;
-                if (p.token == 207) {// new
-                    variables(); // Funcion recursiva
-                }
             } else {
                 System.out.println("Error, se espera: ;");
-                ErrorSintactico();
+                errorEncontradoSintactico = true;
+                return;
             }
         } else {
             System.out.println("Error, se espera: new");
-            ErrorSintactico();
-
+            errorEncontradoSintactico = true;
+            return;
         }
     }
 
-    private void tipos() {
+    private boolean tipos() {
         switch (p.token) {
             case 209:// int
-                break;
+                return true;
             case 208:// float
-                break;
+                return true;
             case 212:// string
-                break;
+                return true;
             default:
-                System.out.println("Error, se espera un estatuto");
-                ErrorSintactico();
+                System.out.println("Error, se espera definir tipo de variable");
+                return false;
         }
     }
+
+    
+     private boolean termino() {
+        if (factor()) {// valida si es un factor
+            return true;
+        } else if (termino()) {
+            if (op_mult()) {
+                if (factor()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
 
     private void statement() {
         switch ((p.token)) {
@@ -317,6 +359,9 @@ class lexico {
                             statement();
                             if (p.token == 120) {// }
                                 p = p.siguienteNodo;
+                                if (p.token != 202) {
+                                    break;
+                                }
                                 if (p.token == 202) {// else
                                     p = p.siguienteNodo;
                                     if (p.token == 119) {// {
@@ -327,38 +372,38 @@ class lexico {
                                             break;
                                         } else {
                                             System.out.println("Error, se espera: }");
-                                            ErrorSintactico();
+                                            return;
                                         }
                                     } else {
                                         System.out.println("Error, se espera: {");
-                                        ErrorSintactico();
+                                        return;
                                     }
                                 } else {
                                     System.out.println("Error, se espera: else");
-                                    ErrorSintactico();
+                                    return;
                                 }
                             } else {
                                 System.out.println("Error, se espera: }");
-                                ErrorSintactico();
+                                return;
                             }
                         } else {
                             System.out.println("Error, se espera: {");
-                            ErrorSintactico();
+                            return;
                         }
                     } else {
                         System.out.println("Error, se espera: )");
-                        ErrorSintactico();
+                        return;
                     }
                 } else {
                     System.out.println("Error, se espera: (");
-                    ErrorSintactico();
+                    return;
                 }
 
             case 204:// while
                 p = p.siguienteNodo;
                 if (p.token == 117) {// (
                     p = p.siguienteNodo;
-                    // exp_cond();
+                    exp_cond();
                     if (p.token == 118) {// )
                         p = p.siguienteNodo;
                         if (p.token == 119) {// {
@@ -369,19 +414,19 @@ class lexico {
                                 break;
                             } else {
                                 System.out.println("Error, se espera: }");
-                                ErrorSintactico();
+                                return;
                             }
                         } else {
                             System.out.println("Error, se espera: {");
-                            ErrorSintactico();
+                            return;
                         }
                     } else {
                         System.out.println("Error, se espera: )");
-                        ErrorSintactico();
+                        return;
                     }
                 } else {
                     System.out.println("Error, se espera: (");
-                    ErrorSintactico();
+                    return;
                 }
 
             case 206:// print
@@ -393,7 +438,7 @@ class lexico {
                             p = p.siguienteNodo;
                         } else {
                             System.out.println("Error, se espera: id o ,");
-                            ErrorSintactico();
+                            return;
                         }
                     }
                     if (p.token == 118) {// )
@@ -402,11 +447,11 @@ class lexico {
                             break;
                         } else {
                             System.out.println("Error, se espera: ;");
-                            ErrorSintactico();
+                            return;
                         }
                     } else {
                         System.out.println("Error, se espera: )");
-                        ErrorSintactico();
+                        return;
                     }
                 }
 
@@ -420,161 +465,196 @@ class lexico {
                             break;
                         } else {
                             System.out.println("Error, se espera: ;");
-                            ErrorSintactico();
+                            return;
                         }
                     } else {
                         System.out.println("Error, se espera: )");
-                        ErrorSintactico();
+                        return;
                     }
                 } else {
                     System.out.println("Error, se espera: (");
-                    ErrorSintactico();
+                    return;
                 }
 
             case 100:// id
                 p = p.siguienteNodo;
                 if (p.token == 123) {// =
                     p = p.siguienteNodo;
-                    // exp_simple();
+                    exp_simple();
                     if (p.token == 125) {// ;
+                        p = p.siguienteNodo;
                         break;
                     } else {
                         System.out.println("Error, se espera: ;");
-                        ErrorSintactico();
+                        return;
                     }
                 } else {
                     System.out.println("Error, se espera: =");
-                    ErrorSintactico();
+                    return;
                 }
             default:
-                System.out.println("Error en statement");
+                System.out.println("Error, se espera un statement");
         }
     }
 
     private void exp_cond() {
-        exp_simple();
-        op_rel();
-        exp_simple();
-    }
-
-    private void exp_simple() {
-        switch (p.token) {
-            case 103:// +
-                signo();
-                break;
-            case 104:// -
-                signo();
-                break;
-            case 100:// id
-                termino();
-                break;
-            case 101:// num
-                termino();
-                break;
-            case 117:// (
-                exp_simple();
-                break;
-            default:
-                break;
+        if (exp_simple()) {
+            if (op_rel()) {
+                if (exp_simple()) {
+                } else {
+                    System.out.println("2Error de expresión simple:" + p.lexema + " #token: " + p.token);
+                }
+            }
+            
         }
+        //System.out.println("1Error de expresión simple:" + p.lexema + " #token: " + p.token);
     }
 
-    private void termino() {
-        if (p.token == 100 || p.token == 101) {// id o num
-            p = p.siguienteNodo;
-        } else {
-            termino();
-            op_mult();
-            factor();
+    private boolean exp_simple() {
+        if (signo()) {
+            if (termino()) {
+                return true;
+            }
+        } else if (termino()) {
+            return true;
+        } else if (exp_simple()) {
+            if (op_aditivo()) {
+                if (termino()) {
+                    return true;
+                }
+            }
+
         }
+        return false;
     }
 
-    private void signo() {
+    /*
+     * private boolean exp_simple() {
+        if (signo()) {
+            if (termino()) {
+                return true;
+            }
+        } else if (termino()) {
+            if (op_aditivo()) {
+                
+                if (termino()) {
+                    return true;
+                }
+            }
+        }
+        return true;
+    }
+     */
+    
+
+    private boolean signo() {
         switch (p.token) {
             case 103:// +
                 p = p.siguienteNodo;
-                termino();
-                break;
+                return true;
             case 104:// -
-                termino();
                 p = p.siguienteNodo;
-                break;
+                return true;
             default:
-                break;
+                return false;
         }
     }
 
-    private void factor() {
+    private boolean factor() {
         switch (p.token) {
             case 100:// id
-
-                break;
+                p = p.siguienteNodo;
+                return true;
             case 101:// num
-                break;
-
+                p = p.siguienteNodo;
+                return true;
             case 117:// (
                 p = p.siguienteNodo;
                 exp_simple();
                 if (p.token == 118) {// )
                     p = p.siguienteNodo;
-                    break;
+                    return true;
                 } else {
-                    System.out.println("Error, se espera: )");
-                    ErrorSintactico();
+                    System.out.println("Error, se espera: ) en factor");
+                    return false;
                 }
             case 116:// !
                 p = p.siguienteNodo;
                 factor();
-                break;
-
+                return true;
             default:
-                break;
+                return false;
         }
+        
     }
 
-    private void op_mult() {
+    private boolean op_mult() {
         switch (p.token) {
             case 105:// *
-                break;
+                p = p.siguienteNodo;
+                return true;
             case 106:// /
-                break;
+                p = p.siguienteNodo;
+                return true;
             case 114:// &&
-                break;
+                p = p.siguienteNodo;
+                return true;
             default:
-                break;
+                return false;
         }
     }
 
-    private void op_rel() {
+    private boolean op_rel() {
         switch (p.token) {
             case 109:// >
                 p = p.siguienteNodo;
-                break;
+                return true;
             case 108:// <
                 p = p.siguienteNodo;
-                break;
+                return true;
             case 111:// >=
                 p = p.siguienteNodo;
-                break;
+                return true;
             case 110:// <=
                 p = p.siguienteNodo;
-                break;
+                return true;
             case 113:// !=
                 p = p.siguienteNodo;
-                break;
+                return true;
             case 112:// ==
                 p = p.siguienteNodo;
-                break;
+                return true;
             default:
-
-                break;
+                return false;
         }
     }
 
-    private void ErrorSintactico() {
-        errorEncontradoSintactico = true;
-        System.exit(0);
+    private boolean op_aditivo() {
+        switch (p.token) {
+            case (103):// +
+                p = p.siguienteNodo;
+                return true;
+            case (104):// -
+                p = p.siguienteNodo;
+                return true;
+            case (115):// ||
+                p = p.siguienteNodo;
+                return true;
+            default:
+                // System.out.println("Error, se espera un oeprador aditivo");
+                //errorEncontradoSintactico = true;
+                return false;
+        }
     }
+
+    /*
+    private boolean verificarTermino(){
+        if(p.token==105 || p.token==106 || p.token==107){
+            return false;
+        }
+    }
+    */
+    
 
     private void imprimirNodos() {
         p = cabeza;
