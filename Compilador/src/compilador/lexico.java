@@ -330,9 +330,25 @@ class lexico {
         }
     }
 
-    
-     private boolean termino() {
+    /*
+     * private boolean termino() {
+     * if (factor()) {// valida si es un factor
+     * //verificarTermino();
+     * return true;
+     * } else if (termino()) {
+     * if (op_mult()) {
+     * if (factor()) {
+     * return true;
+     * }
+     * }
+     * }
+     * return false;
+     * }
+     */
+
+    private boolean termino() {
         if (factor()) {// valida si es un factor
+            // verificarTermino();
             return true;
         } else if (termino()) {
             if (op_mult()) {
@@ -343,7 +359,6 @@ class lexico {
         }
         return false;
     }
-    
 
     private void statement() {
         switch ((p.token)) {
@@ -444,6 +459,7 @@ class lexico {
                     if (p.token == 118) {// )
                         p = p.siguienteNodo;
                         if (p.token == 125) {// ;
+                            p = p.siguienteNodo;
                             break;
                         } else {
                             System.out.println("Error, se espera: ;");
@@ -493,7 +509,7 @@ class lexico {
                     return;
                 }
             default:
-                System.out.println("Error, se espera un statement");
+                break;
         }
     }
 
@@ -505,9 +521,8 @@ class lexico {
                     System.out.println("2Error de expresión simple:" + p.lexema + " #token: " + p.token);
                 }
             }
-            
+
         }
-        //System.out.println("1Error de expresión simple:" + p.lexema + " #token: " + p.token);
     }
 
     private boolean exp_simple() {
@@ -516,27 +531,8 @@ class lexico {
                 return true;
             }
         } else if (termino()) {
-            return true;
-        } else if (exp_simple()) {
             if (op_aditivo()) {
-                if (termino()) {
-                    return true;
-                }
-            }
 
-        }
-        return false;
-    }
-
-    /*
-     * private boolean exp_simple() {
-        if (signo()) {
-            if (termino()) {
-                return true;
-            }
-        } else if (termino()) {
-            if (op_aditivo()) {
-                
                 if (termino()) {
                     return true;
                 }
@@ -544,8 +540,6 @@ class lexico {
         }
         return true;
     }
-     */
-    
 
     private boolean signo() {
         switch (p.token) {
@@ -585,7 +579,6 @@ class lexico {
             default:
                 return false;
         }
-        
     }
 
     private boolean op_mult() {
@@ -641,20 +634,9 @@ class lexico {
                 p = p.siguienteNodo;
                 return true;
             default:
-                // System.out.println("Error, se espera un oeprador aditivo");
-                //errorEncontradoSintactico = true;
                 return false;
         }
     }
-
-    /*
-    private boolean verificarTermino(){
-        if(p.token==105 || p.token==106 || p.token==107){
-            return false;
-        }
-    }
-    */
-    
 
     private void imprimirNodos() {
         p = cabeza;
