@@ -60,9 +60,9 @@ class lexico {
             /* 1 */ { "if", "201" },
             /* 2 */ { "else", "202" },
             /* 3 */ { "main", "203" },
-            /* 13 */ { "getvalue", "204" },
+            /* 13 */ { "while", "204" },
             /* 5 */ { "go to", "205" },
-            /* 6 */ { "Print", "206" },
+            /* 6 */ { "print", "206" },
             /* 7 */ { "new", "207" },
             /* 8 */ { "float", "208" },
             /* 9 */ { "int", "209" },
@@ -237,7 +237,7 @@ class lexico {
                         if (p.token == 119) { // {
                             p = p.siguienteNodo;
                             variables();
-                            while (p.token != 120) {
+                            while (p.token != 120) {// }
                                 statement();
                             }
                             // p=p.siguienteNodo;
@@ -424,7 +424,7 @@ class lexico {
                         if (p.token == 119) {// {
                             p = p.siguienteNodo;
                             statement();
-                            if (errorEncontrado) {// }
+                            if (p.token == 120) {// }
                                 p = p.siguienteNodo;
                                 break;
                             } else {
@@ -478,6 +478,7 @@ class lexico {
                     if (p.token == 118) {// )
                         p = p.siguienteNodo;
                         if (p.token == 125) {// ;
+                            p = p.siguienteNodo;
                             break;
                         } else {
                             System.out.println("Error, se espera: ;");
