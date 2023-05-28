@@ -1,4 +1,3 @@
-
 package compilador;
 
 import java.io.RandomAccessFile;
@@ -6,7 +5,6 @@ import java.io.RandomAccessFile;
 class lexico {
     nodo cabeza = null;
     nodo p;
-
     int estado = 0;
     int columna;
     int valorMT;
@@ -222,7 +220,8 @@ class lexico {
             }
         }
 
-        ////////// Analizador Sintactico //////////
+        ////////////////////////// Analizador Sintactico
+        ////////////////////////// ////////////////////////////////
         p = cabeza;
         while (p != null) {
             if (errorEncontradoSintactico) {
@@ -237,19 +236,13 @@ class lexico {
                         if (p.token == 119) { // {
                             p = p.siguienteNodo;
                             variables();
-                            while (p.token != 120) {// }
+                            while (p.token != 120) {
                                 statement();
                             }
-                            // p=p.siguienteNodo;
                             if (p.token == 120) { // }
                                 p = p.siguienteNodo;
 
                             }
-                            /*
-                             * if (p.token != 120) {
-                             * System.out.println("Error, caracter invalido despues de }");
-                             * }
-                             */
 
                         } else {
                             System.out.println("Error, se espera: {");
@@ -271,7 +264,6 @@ class lexico {
                 errorEncontradoSintactico = true;
                 return;
             }
-            // p = p.siguienteNodo;
         }
     }
 
@@ -316,57 +308,15 @@ class lexico {
         }
     }
 
-    private boolean tipos() {
-        switch (p.token) {
-            case 209:// int
-                return true;
-            case 208:// float
-                return true;
-            case 212:// string
-                return true;
-            default:
-                System.out.println("Error, se espera definir tipo de variable");
-                return false;
-        }
-    }
-
-    /*
-     * private boolean termino() {
-     * if (factor()) {// valida si es un factor
-     * //verificarTermino();
-     * return true;
-     * } else if (termino()) {
-     * if (op_mult()) {
-     * if (factor()) {
-     * return true;
-     * }
-     * }
-     * }
-     * return false;
-     * }
-     */
-
-    private boolean termino() {
-        if (factor()) {// valida si es un factor
-            // verificarTermino();
-            return true;
-        } else if (termino()) {
-            if (op_mult()) {
-                if (factor()) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     private void statement() {
         switch ((p.token)) {
             case 201:// if
                 p = p.siguienteNodo;
                 if (p.token == 117) {// (
                     p = p.siguienteNodo;
+                    while(p.token!= 118){
                     exp_cond();
+                    }
                     if (p.token == 118) { // )
                         p = p.siguienteNodo;
                         if (p.token == 119) {// {
@@ -423,8 +373,10 @@ class lexico {
                         p = p.siguienteNodo;
                         if (p.token == 119) {// {
                             p = p.siguienteNodo;
+                            while(p.token!=120){
                             statement();
-                            if (p.token == 120) {// }
+                            }
+                            if (p.token==120) {// }
                                 p = p.siguienteNodo;
                                 break;
                             } else {
@@ -478,7 +430,7 @@ class lexico {
                     if (p.token == 118) {// )
                         p = p.siguienteNodo;
                         if (p.token == 125) {// ;
-                            p = p.siguienteNodo;
+                            p=p.siguienteNodo;
                             break;
                         } else {
                             System.out.println("Error, se espera: ;");
@@ -497,7 +449,9 @@ class lexico {
                 p = p.siguienteNodo;
                 if (p.token == 123) {// =
                     p = p.siguienteNodo;
+                    while(p.token!= 125){
                     exp_simple();
+                    }
                     if (p.token == 125) {// ;
                         p = p.siguienteNodo;
                         break;
@@ -514,69 +468,90 @@ class lexico {
         }
     }
 
-    private void exp_cond() {
-        if (exp_simple()) {
-            if (op_rel()) {
-                if (exp_simple()) {
-                } else {
-                    System.out.println("2Error de expresión simple:" + p.lexema + " #token: " + p.token);
-                }
-            }
-
-        }
-    }
-
-    private boolean exp_simple() {
-        if (signo()) {
-            if (termino()) {
-                return true;
-            }
-        } else if (termino()) {
-            if (op_aditivo()) {
-
-                if (termino()) {
-                    return true;
-                }
-            }
-        }
-        return true;
-    }
-
-    private boolean signo() {
+    private boolean tipos() {
         switch (p.token) {
-            case 103:// +
-                p = p.siguienteNodo;
+            case 209:// int
                 return true;
-            case 104:// -
-                p = p.siguienteNodo;
+            case 208:// float
+                return true;
+            case 212:// string
                 return true;
             default:
+                System.out.println("Error, se espera definir tipo de variable");
                 return false;
         }
     }
 
+    private void exp_cond() {
+        if (exp_simple()) {
+            if (op_rel()) {
+                if (exp_simple()) {//
+                } else {
+                    System.out.println("2Error de expresión simple:" + p.lexema + " #token: " + p.token);
+                }
+            }
+        }
+    }
+
+    private boolean exp_simple() {
+        if(signo()){//manda a llamar signo
+            if(termino()){//manda a llamar termino
+                return true;
+            }
+        }else if(termino()){//manda a llamar termino
+            return true;
+        }else if(exp_simple()){//si no es termino, manda a llamar expresion simple
+            if(op_aditivo()){//manda a llamar operador aditivo
+                if(termino()){ //manda a llamar termino
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+
+    private boolean termino() {
+        if(factor()){//manda a llamar factor
+            return true;
+        }else //if(termino()){//manda a llamar termino
+            if(op_mult()){ //manda a llamar a operador multiplicativo
+                if(factor()){//manda a llamar a factor
+                    return true;
+                }
+            }
+      //  }
+        return false;
+    }  
+
+
     private boolean factor() {
         switch (p.token) {
-            case 100:// id
+            case 100: // id
                 p = p.siguienteNodo;
                 return true;
-            case 101:// num
+            case 101: // num
                 p = p.siguienteNodo;
                 return true;
-            case 117:// (
+            case 117: // (
                 p = p.siguienteNodo;
-                exp_simple();
-                if (p.token == 118) {// )
-                    p = p.siguienteNodo;
-                    return true;
+                if (exp_simple()) {
+                    if (p.token == 118) { // )
+                        p = p.siguienteNodo;
+                        return true;
+                    } else {
+                        return false;
+                    }
                 } else {
-                    System.out.println("Error, se espera: ) en factor");
                     return false;
                 }
-            case 116:// !
+            case 116: // !
                 p = p.siguienteNodo;
-                factor();
-                return true;
+                if (factor()) {
+                    return true;
+                } else {
+                    return false;
+                }
             default:
                 return false;
         }
@@ -584,20 +559,19 @@ class lexico {
 
     private boolean op_mult() {
         switch (p.token) {
-            case 105:// *
+            case 105: // *
                 p = p.siguienteNodo;
                 return true;
-            case 106:// /
+            case 106: // /
                 p = p.siguienteNodo;
                 return true;
-            case 114:// &&
+            case 114: // &&
                 p = p.siguienteNodo;
                 return true;
             default:
                 return false;
         }
     }
-
     private boolean op_rel() {
         switch (p.token) {
             case 109:// >
@@ -622,20 +596,27 @@ class lexico {
                 return false;
         }
     }
-
     private boolean op_aditivo() {
         switch (p.token) {
-            case (103):// +
+            case 103: // +
                 p = p.siguienteNodo;
                 return true;
-            case (104):// -
+            case 104: // -
                 p = p.siguienteNodo;
                 return true;
-            case (115):// ||
+            case 115: // ||
                 p = p.siguienteNodo;
                 return true;
             default:
                 return false;
+        }
+    }
+    private boolean signo(){
+        if(p.token == 103 || p.token == 104){
+            p = p.siguienteNodo;
+            return true;
+        }else{
+            return false;
         }
     }
 
