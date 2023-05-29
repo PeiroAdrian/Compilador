@@ -224,9 +224,6 @@ class lexico {
         ////////////////////////// ////////////////////////////////
         p = cabeza;
         while (p != null) {
-            if (errorEncontradoSintactico) {
-                break;
-            }
             if (p.token == 203) { // main
                 p = p.siguienteNodo;
                 if (p.token == 117) { // (
@@ -236,8 +233,14 @@ class lexico {
                         if (p.token == 119) { // {
                             p = p.siguienteNodo;
                             variables();
+                            if (errorEncontradoSintactico) {
+                                break;
+                            }
                             while (p.token != 120) {
                                 statement();
+                                if (errorEncontradoSintactico) {
+                                    return;
+                                }
                             }
                             if (p.token == 120) { // }
                                 p = p.siguienteNodo;
@@ -314,8 +317,12 @@ class lexico {
                 p = p.siguienteNodo;
                 if (p.token == 117) {// (
                     p = p.siguienteNodo;
-                    while(p.token!= 118){
-                    exp_cond();
+                    while (p.token != 118) {
+                        exp_cond();
+                        if (errorEncontradoSintactico) {
+                            System.out.println("Error en sentencia condicional");
+                            return;    
+                        }
                     }
                     if (p.token == 118) { // )
                         p = p.siguienteNodo;
@@ -369,14 +376,18 @@ class lexico {
                 if (p.token == 117) {// (
                     p = p.siguienteNodo;
                     exp_cond();
+                    if (errorEncontradoSintactico) {
+                        System.out.println("Error en sentencia iterativa");
+                        return;    
+                    }
                     if (p.token == 118) {// )
                         p = p.siguienteNodo;
                         if (p.token == 119) {// {
                             p = p.siguienteNodo;
-                            while(p.token!=120){
-                            statement();
+                            while (p.token != 120) {
+                                statement();
                             }
-                            if (p.token==120) {// }
+                            if (p.token == 120) {// }
                                 p = p.siguienteNodo;
                                 break;
                             } else {
@@ -430,7 +441,7 @@ class lexico {
                     if (p.token == 118) {// )
                         p = p.siguienteNodo;
                         if (p.token == 125) {// ;
-                            p=p.siguienteNodo;
+                            p = p.siguienteNodo;
                             break;
                         } else {
                             System.out.println("Error, se espera: ;");
@@ -449,9 +460,16 @@ class lexico {
                 p = p.siguienteNodo;
                 if (p.token == 123) {// =
                     p = p.siguienteNodo;
-                    while(p.token!= 125){
-                    exp_simple();
+                    if (p.token == 100 || p.token == 101) {// id o numero
+                        while (p.token != 125) {
+                            exp_simple();
+                        }
+                    } else {
+                        System.out.println("Error, se espera: id o numero");
+                        errorEncontradoSintactico = true;
+                        return;
                     }
+
                     if (p.token == 125) {// ;
                         p = p.siguienteNodo;
                         break;
@@ -461,9 +479,13 @@ class lexico {
                     }
                 } else {
                     System.out.println("Error, se espera: =");
+                    errorEncontradoSintactico = true;
                     return;
                 }
             default:
+                System.out.println("Se espera: statement");
+                errorEncontradoSintactico = true;
+                p = p.siguienteNodo;
                 break;
         }
     }
@@ -483,47 +505,58 @@ class lexico {
     }
 
     private void exp_cond() {
+        
         if (exp_simple()) {
             if (op_rel()) {
                 if (exp_simple()) {//
                 } else {
-                    System.out.println("2Error de expresión simple:" + p.lexema + " #token: " + p.token);
+                    //System.out.println("Error de expresión simple");
                 }
+            } else {
+                System.out.println("Error, se espera: operador relacional");
+                errorEncontradoSintactico = true;
+                return;
             }
         }
     }
 
     private boolean exp_simple() {
-        if(signo()){//manda a llamar signo
-            if(termino()){//manda a llamar termino
+        if (errorEncontradoSintactico) {
+            return false;
+        }
+        if (signo()) {// manda a llamar signo
+            if (termino()) {// manda a llamar termino
                 return true;
             }
-        }else if(termino()){//manda a llamar termino
+
+        } else if (termino()) {// manda a llamar termino
             return true;
-        }else if(exp_simple()){//si no es termino, manda a llamar expresion simple
-            if(op_aditivo()){//manda a llamar operador aditivo
-                if(termino()){ //manda a llamar termino
+        } else if (exp_simple()) {// si no es termino, manda a llamar expresion simple
+            if (op_aditivo()) {// manda a llamar operador aditivo
+                if (termino()) { // manda a llamar termino
                     return true;
                 }
             }
+        } else {
+            System.out.println("Error de expresión simple, se espera: signo, termino, expresión simple o operador aditivo");
+            errorEncontradoSintactico = true;
+            
         }
         return false;
     }
-    
 
     private boolean termino() {
-        if(factor()){//manda a llamar factor
+        if (factor()) {// manda a llamar factor
             return true;
-        }else //if(termino()){//manda a llamar termino
-            if(op_mult()){ //manda a llamar a operador multiplicativo
-                if(factor()){//manda a llamar a factor
-                    return true;
-                }
+        } else // if(termino()){//manda a llamar termino
+        if (op_mult()) { // manda a llamar a operador multiplicativo
+            if (factor()) {// manda a llamar a factor
+                return true;
             }
-      //  }
+        }
+        // }
         return false;
-    }  
-
+    }
 
     private boolean factor() {
         switch (p.token) {
@@ -569,9 +602,11 @@ class lexico {
                 p = p.siguienteNodo;
                 return true;
             default:
+            errorEncontradoSintactico = true;
                 return false;
         }
     }
+
     private boolean op_rel() {
         switch (p.token) {
             case 109:// >
@@ -596,6 +631,7 @@ class lexico {
                 return false;
         }
     }
+
     private boolean op_aditivo() {
         switch (p.token) {
             case 103: // +
@@ -611,11 +647,12 @@ class lexico {
                 return false;
         }
     }
-    private boolean signo(){
-        if(p.token == 103 || p.token == 104){
+
+    private boolean signo() {
+        if (p.token == 103 || p.token == 104) {
             p = p.siguienteNodo;
             return true;
-        }else{
+        } else {
             return false;
         }
     }
