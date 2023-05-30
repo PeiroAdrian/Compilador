@@ -220,8 +220,7 @@ class lexico {
             }
         }
 
-        ////////////////////////// Analizador Sintactico
-        ////////////////////////// ////////////////////////////////
+        ////////////////////////// Analizador Sintactico //////////////////////////////////////////////////////////
         p = cabeza;
         while (p != null) {
             if (p.token == 203) { // main
@@ -236,6 +235,11 @@ class lexico {
                             if (errorEncontradoSintactico) {
                                 break;
                             }
+                            if(p==null){
+                                System.out.println("Error, se espera: }");
+                                errorEncontradoSintactico = true;
+                                return;
+                            }
                             while (p.token != 120) {
                                 statement();
                                 if (errorEncontradoSintactico) {
@@ -245,8 +249,11 @@ class lexico {
                             if (p.token == 120) { // }
                                 p = p.siguienteNodo;
 
+                            }else {
+                                System.out.println("Error, se espera: }");
+                                errorEncontradoSintactico = true;
+                                return;
                             }
-
                         } else {
                             System.out.println("Error, se espera: {");
                             errorEncontradoSintactico = true;
@@ -317,7 +324,7 @@ class lexico {
                 p = p.siguienteNodo;
                 if (p.token == 117) {// (
                     p = p.siguienteNodo;
-                    while (p.token != 118) {
+                    while (p.token != 118) {// )
                         exp_cond();
                         if (errorEncontradoSintactico) {
                             System.out.println("Error en sentencia condicional");
@@ -360,14 +367,17 @@ class lexico {
                             }
                         } else {
                             System.out.println("Error, se espera: {");
+                            errorEncontradoSintactico = true;
                             return;
                         }
                     } else {
                         System.out.println("Error, se espera: )");
+                        errorEncontradoSintactico = true;
                         return;
                     }
                 } else {
                     System.out.println("Error, se espera: (");
+                    errorEncontradoSintactico = true;
                     return;
                 }
 
@@ -375,16 +385,18 @@ class lexico {
                 p = p.siguienteNodo;
                 if (p.token == 117) {// (
                     p = p.siguienteNodo;
-                    exp_cond();
-                    if (errorEncontradoSintactico) {
-                        System.out.println("Error en sentencia iterativa");
-                        return;    
+                    while (p.token != 118) {
+                        exp_cond();
+                        if (errorEncontradoSintactico) {
+                            System.out.println("Error en sentencia iterativa");
+                            return;    
+                        }
                     }
                     if (p.token == 118) {// )
                         p = p.siguienteNodo;
                         if (p.token == 119) {// {
                             p = p.siguienteNodo;
-                            while (p.token != 120) {
+                            while (p.token != 120) {// }
                                 statement();
                             }
                             if (p.token == 120) {// }
@@ -396,14 +408,17 @@ class lexico {
                             }
                         } else {
                             System.out.println("Error, se espera: {");
+                            errorEncontradoSintactico = true;
                             return;
                         }
                     } else {
                         System.out.println("Error, se espera: )");
+                        errorEncontradoSintactico = true;
                         return;
                     }
                 } else {
                     System.out.println("Error, se espera: (");
+                    errorEncontradoSintactico = true;
                     return;
                 }
 
@@ -416,6 +431,7 @@ class lexico {
                             p = p.siguienteNodo;
                         } else {
                             System.out.println("Error, se espera: id o ,");
+                            errorEncontradoSintactico = true;
                             return;
                         }
                     }
@@ -426,10 +442,12 @@ class lexico {
                             break;
                         } else {
                             System.out.println("Error, se espera: ;");
+                            errorEncontradoSintactico = true;
                             return;
                         }
                     } else {
                         System.out.println("Error, se espera: )");
+                        errorEncontradoSintactico = true;
                         return;
                     }
                 }
@@ -445,14 +463,17 @@ class lexico {
                             break;
                         } else {
                             System.out.println("Error, se espera: ;");
+                            errorEncontradoSintactico = true;
                             return;
                         }
                     } else {
                         System.out.println("Error, se espera: )");
+                        errorEncontradoSintactico = true;
                         return;
                     }
                 } else {
                     System.out.println("Error, se espera: (");
+                    errorEncontradoSintactico = true;
                     return;
                 }
 
@@ -475,6 +496,7 @@ class lexico {
                         break;
                     } else {
                         System.out.println("Error, se espera: ;");
+                        errorEncontradoSintactico = true;
                         return;
                     }
                 } else {
@@ -485,7 +507,7 @@ class lexico {
             default:
                 System.out.println("Se espera: statement");
                 errorEncontradoSintactico = true;
-                p = p.siguienteNodo;
+                //p = p.siguienteNodo;
                 break;
         }
     }
@@ -538,7 +560,7 @@ class lexico {
                 }
             }
         } else {
-            System.out.println("Error de expresión simple, se espera: signo, termino, expresión simple o operador aditivo");
+            System.out.println("Error de expresión simple, se espera: termino");
             errorEncontradoSintactico = true;
             
         }
